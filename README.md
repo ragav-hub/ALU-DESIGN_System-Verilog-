@@ -9,7 +9,7 @@ To design and simulate a **4-bit Arithmetic Logic Unit (ALU)** using **SystemVer
 
 ## Apparatus Required  
 - Computer with **Windows** OS  
-- **ModelSim 2020.1** (or later) installed  
+- **Synopsys VCS** installed  
 - SystemVerilog source code editor  
 
 ---
@@ -40,8 +40,8 @@ Common ALU operations included in this design are:
 
 ## Procedure  
 
-1. **Open ModelSim 2020.1**  
-   - Launch the ModelSim IDE from the Start Menu (Windows) or terminal (Linux).  
+1. **Open Synopsys VCS**  
+   - Launch the Synopsys VCS IDE from the Start Menu (Windows) or terminal (Linux).  
 
 2. **Create a New Project**  
    - Go to `File → New → Project`.  
