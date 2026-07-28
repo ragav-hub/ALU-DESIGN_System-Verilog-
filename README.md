@@ -95,48 +95,45 @@ Common ALU operations included in this design are:
 // ALU Design using Enumerated Data Types and Case Statements
 // ========================================================
 
-// Module declaration
-module alu_enum #(parameter WIDTH = 4) (
-    input  logic [WIDTH-1:0] A, B,
-    input  logic <define_operation_enum_here>, // Enumerated operation selector
+typedef enum logic [2:0] {
+    ADD = 3'b000,
+    SUB = 3'b001,
+    AND = 3'b010,
+    OR  = 3'b011,
+    XOR = 3'b100,
+    NOT = 3'b101,
+    SHL = 3'b110,
+    SHR = 3'b111
+} alu_ops_t;
+
+module alu_enum #(parameter WIDTH = 4)(
+    input logic [WIDTH-1:0] A,
+    input logic [WIDTH-1:0] B,
+    input alu_ops_t operation,
     output logic [WIDTH-1:0] ALU_Out,
     output logic CarryOut
 );
 
-    // -----------------------------------------
-    // Define Enumerated Data Type for ALU Ops
-    // -----------------------------------------
-    // typedef enum logic [2:0] {
-    //     ADD = 3'b000,
-    //     SUB = 3'b001,
-    //     AND = 3'b010,
-    //     OR  = 3'b011,
-    //     XOR = 3'b100,
-    //     NOT = 3'b101,
-    //     SHL = 3'b110,
-    //     SHR = 3'b111
-    // } alu_ops_t;
+logic [WIDTH:0] tmp;
 
-    // -----------------------------------------
-    // Internal signals
-    // -----------------------------------------
-    // logic [WIDTH:0] tmp;
+always_comb begin
+    tmp = '0;
 
-    // -----------------------------------------
-    // ALU operation using case statement
-    // -----------------------------------------
-    always_comb begin
-        // case (operation)
-        //     ADD: tmp = A + B;
-        //     SUB: tmp = A - B;
-        //     AND: tmp = A & B;
-        //     ...
-        //     default: tmp = 0;
-        // endcase
-    end
+    case(operation)
+        ADD: tmp = A + B;
+        SUB: tmp = A - B;
+        AND: tmp = {1'b0, A & B};
+        OR : tmp = {1'b0, A | B};
+        XOR: tmp = {1'b0, A ^ B};
+        NOT: tmp = {1'b0, ~A};
+        SHL: tmp = {1'b0, A << 1};
+        SHR: tmp = {1'b0, A >> 1};
+        default: tmp = '0;
+    endcase
+end
 
-    // assign ALU_Out = tmp[WIDTH-1:0];
-    // assign CarryOut = tmp[WIDTH];
+assign ALU_Out = tmp[WIDTH-1:0];
+assign CarryOut = tmp[WIDTH];
 
 endmodule
 ```
@@ -152,35 +149,34 @@ endmodule
 
 module alu_enum_tb;
 
-    // -----------------------------------------
-    // Testbench signals
-    // -----------------------------------------
-    logic [3:0] A, B;
-    logic <define_operation_enum_here>;   // Enumerated operation selector
-    logic [3:0] ALU_Out;
-    logic CarryOut;
+logic [3:0] A, B;
+alu_ops_t operation;
 
-    // -----------------------------------------
-    // Instantiate ALU
-    // -----------------------------------------
-    alu_enum #(4) uut (
-        .A(A),
-        .B(B),
-        .operation(<enum_signal>),
-        .ALU_Out(ALU_Out),
-        .CarryOut(CarryOut)
-    );
+logic [3:0] ALU_Out;
+logic CarryOut;
 
-    // -----------------------------------------
-    // Apply test vectors
-    // -----------------------------------------
-    initial begin
-        // Example:
-        // A = 4'b0011; B = 4'b0001; operation = ADD; #10;
-        // A = 4'b0100; B = 4'b0001; operation = SUB; #10;
-        // ...
-        $stop; // End of simulation
-    end
+alu_enum #(4) uut(
+    .A(A),
+    .B(B),
+    .operation(operation),
+    .ALU_Out(ALU_Out),
+    .CarryOut(CarryOut)
+);
+
+initial begin
+
+    A = 4'b0011; B = 4'b0001; operation = ADD; #10;
+    A = 4'b0100; B = 4'b0001; operation = SUB; #10;
+    A = 4'b1010; B = 4'b1100; operation = AND; #10;
+    A = 4'b1010; B = 4'b1100; operation = OR;  #10;
+    A = 4'b1010; B = 4'b1100; operation = XOR; #10;
+    A = 4'b1010; B = 4'b0000; operation = NOT; #10;
+    A = 4'b0011; B = 4'b0000; operation = SHL; #10;
+    A = 4'b1000; B = 4'b0000; operation = SHR; #10;
+
+    $stop;
+
+end
 
 endmodule
 ```
@@ -188,14 +184,13 @@ endmodule
 
 ### Simulation Output
 
-The simulation is carried out using ModelSim 2020.1.
+<img width="1917" height="1143" alt="Screenshot 2026-07-28 132830" src="https://github.com/user-attachments/assets/13ba2fe4-2dbd-4cbf-adb8-9375cc8537b2" />
 
-(Insert waveform screenshot here after running simulation in ModelSim)
 
 ---
 
 ### Result
 
-The design and simulation of a 4-bit ALU using Enumerated Data Types and Case Statements in SystemVerilog HDL was successfully carried out in ModelSim 2020.1.
+The design and simulation of a 4-bit ALU using Enumerated Data Types and Case Statements in SystemVerilog HDL was successfully carried out in Synopsys VCS and DVE
 The ALU performed arithmetic, logical, and shift operations correctly as verified from the simulation outputs.
 
