@@ -9,7 +9,8 @@ To design and simulate a **4-bit Arithmetic Logic Unit (ALU)** using **SystemVer
 
 ## Apparatus Required  
 - Computer with **Windows** OS  
-- **Synopsys VCS** installed  
+- **MobaXterm** (for remote terminal access)
+- **Synopsys VCS and DVE** (accessed via college server/license) 
 - SystemVerilog source code editor  
 
 ---
@@ -34,53 +35,46 @@ Common ALU operations included in this design are:
 - Implements ALU operations with **Case Statements**  
 - Parameterized design for scalability  
 - Includes a **Testbench** for functional verification  
-- Compatible with **ModelSim 2020.1**  
+- Compatible with **Synopsys VCS & DVE**  
 
 ---
 
 ## Procedure  
 
-1. **Open Synopsys VCS**  
-   - Launch the Synopsys VCS IDE from the Start Menu (Windows) or terminal (Linux).  
+1. **Connect to the Server via MobaXterm**  
+   - Open MobaXterm and log in using the college-provided license email ID and password.  
+   - Run the `xdg-open` command to access the file system and navigate through the folders.  
 
-2. **Create a New Project**  
-   - Go to `File → New → Project`.  
-   - Enter a project name (e.g., `ALU_Enum_Project`).  
-   - Set the project location.  
-   - Click **OK**.  
+2. **Create a Working Directory**  
+   - Create a new folder for the project.  
+   - Inside this folder, create the design file and the testbench file `ALU.sv`.  
 
-3. **Add SystemVerilog Source Files**  
-   - Create a new source file named `alu_enum.sv` and type the ALU design code.  
-   - Create a new source file named `alu_enum_tb.sv` and type the testbench code.  
+3. **Set Up the Simulation Environment**  
+   - Open a terminal session (bash).  
+   - Source the Synopsys VCS environment setup script (e.g.,`source /synopsys/start.sh`).  
 
 4. **Compile the Design and Testbench**  
-   - Select both files (`alu_enum.sv` and `alu_enum_tb.sv`).  
-   - Right-click → **Compile Selected**.  
-   - Ensure there are no syntax errors.  
+   - Run the following command to compile the SystemVerilog files : `vcs -full64 -sverilog ALU.sv`
+   - Ensure there are no syntax or compilation errors.  
 
-5. **Start Simulation**  
-   - Go to `Simulate → Start Simulation`.  
-   - In the **Library window**, expand **work**.  
-   - Select the testbench module (`alu_enum_tb`).  
-   - Click **OK**.  
+5. **Run the Simulation**  
+   - Execute the compiled simulation binary : `./simv`
 
-6. **Add Signals to Waveform**  
-   - In the simulation window, select all signals (A, B, Operation, ALU_Out, CarryOut).  
-   - Right-click → **Add to → Wave → Selected Signals**.  
+6. **Launch DVE (Discovery Visualization Environment)**  
+   - Open the waveform viewer : `dve -full64`
+   - In the DVE window, go to `File → Open Database`.  
+   - Select and open the generated `.vcd`/dump file.  
 
-7. **Run Simulation**  
-   - In the simulation console, type:  
-     ```
-     run 100ns
-     ```  
-   - Or use the **Run button** to observe waveforms.  
+7. **Add Signals to the Waveform Window**  
+   - Right-click on the file/module in the hierarchy.  
+   - Select **Add Wave → Add New Wave to Window** to display the signals.  
 
 8. **Analyze Waveforms**  
    - Verify the outputs of the ALU for each enumerated operation.  
    - Check that addition, subtraction, logical operations, and shifts are working correctly.  
 
 9. **Save Results**  
-   - Save the waveform (`.wlf` file) for documentation.  
+   - Save the waveform for documentation. 
 
 ---
 
@@ -88,13 +82,11 @@ Common ALU operations included in this design are:
 
 ### ALU Design (`alu_enum.sv`)
 ```systemverilog
-// Write your ALU design code here using
-// - Enumerated Data Types for ALU operations
-// - Case Statements for operation selection
-// ========================================================
+//========================================================
 // ALU Design using Enumerated Data Types and Case Statements
-// ========================================================
+//========================================================
 
+// Define Enumerated Data Type for ALU Operations
 typedef enum logic [2:0] {
     ADD = 3'b000,
     SUB = 3'b001,
@@ -106,34 +98,40 @@ typedef enum logic [2:0] {
     SHR = 3'b111
 } alu_ops_t;
 
-module alu_enum #(parameter WIDTH = 4)(
-    input logic [WIDTH-1:0] A,
-    input logic [WIDTH-1:0] B,
-    input alu_ops_t operation,
+// Module declaration
+module alu_enum #(parameter WIDTH = 4) (
+    input  logic [WIDTH-1:0] A, B,
+    input  alu_ops_t operation, // Enumerated operation selector
     output logic [WIDTH-1:0] ALU_Out,
     output logic CarryOut
 );
 
-logic [WIDTH:0] tmp;
+    // -----------------------------------------
+    // Internal signals
+    // -----------------------------------------
+    logic [WIDTH:0] tmp;
 
-always_comb begin
-    tmp = '0;
+    // -----------------------------------------
+    // ALU operation using case statement
+    // -----------------------------------------
+    always_comb begin
+        tmp = '0;
 
-    case(operation)
-        ADD: tmp = A + B;
-        SUB: tmp = A - B;
-        AND: tmp = {1'b0, A & B};
-        OR : tmp = {1'b0, A | B};
-        XOR: tmp = {1'b0, A ^ B};
-        NOT: tmp = {1'b0, ~A};
-        SHL: tmp = {1'b0, A << 1};
-        SHR: tmp = {1'b0, A >> 1};
-        default: tmp = '0;
-    endcase
-end
+        case (operation)
+            ADD: tmp = A + B;
+            SUB: tmp = A - B;
+            AND: tmp = {1'b0, (A & B)};
+            OR : tmp = {1'b0, (A | B)};
+            XOR: tmp = {1'b0, (A ^ B)};
+            NOT: tmp = {1'b0, (~A)};
+            SHL: tmp = {1'b0, (A << 1)};
+            SHR: tmp = {1'b0, (A >> 1)};
+            default: tmp = '0;
+        endcase
+    end
 
-assign ALU_Out = tmp[WIDTH-1:0];
-assign CarryOut = tmp[WIDTH];
+    assign ALU_Out = tmp[WIDTH-1:0];
+    assign CarryOut = tmp[WIDTH];
 
 endmodule
 ```
@@ -142,41 +140,47 @@ endmodule
 ### ALU Testbench (`alu_tb.sv`)
 ```systemverilog
 
-// Write your ALU testbench code here
-// ========================================================
+//========================================================
 // Testbench for ALU using Enumerated Data Types
-// ========================================================
+//========================================================
 
 module alu_enum_tb;
 
-logic [3:0] A, B;
-alu_ops_t operation;
+    // -----------------------------------------
+    // Testbench signals
+    // -----------------------------------------
+    logic [3:0] A, B;
+    alu_ops_t operation;   // Enumerated operation selector
+    logic [3:0] ALU_Out;
+    logic CarryOut;
 
-logic [3:0] ALU_Out;
-logic CarryOut;
+    // -----------------------------------------
+    // Instantiate ALU
+    // -----------------------------------------
+    alu_enum #(4) uut (
+        .A(A),
+        .B(B),
+        .operation(operation),
+        .ALU_Out(ALU_Out),
+        .CarryOut(CarryOut)
+    );
 
-alu_enum #(4) uut(
-    .A(A),
-    .B(B),
-    .operation(operation),
-    .ALU_Out(ALU_Out),
-    .CarryOut(CarryOut)
-);
+    // -----------------------------------------
+    // Apply test vectors
+    // -----------------------------------------
+    initial begin
 
-initial begin
+        A = 4'b0011; B = 4'b0001; operation = ADD; #10;
+        A = 4'b0100; B = 4'b0001; operation = SUB; #10;
+        A = 4'b1010; B = 4'b1100; operation = AND; #10;
+        A = 4'b1010; B = 4'b1100; operation = OR;  #10;
+        A = 4'b1010; B = 4'b1100; operation = XOR; #10;
+        A = 4'b1010; B = 4'b0000; operation = NOT; #10;
+        A = 4'b0011; B = 4'b0000; operation = SHL; #10;
+        A = 4'b1000; B = 4'b0000; operation = SHR; #10;
 
-    A = 4'b0011; B = 4'b0001; operation = ADD; #10;
-    A = 4'b0100; B = 4'b0001; operation = SUB; #10;
-    A = 4'b1010; B = 4'b1100; operation = AND; #10;
-    A = 4'b1010; B = 4'b1100; operation = OR;  #10;
-    A = 4'b1010; B = 4'b1100; operation = XOR; #10;
-    A = 4'b1010; B = 4'b0000; operation = NOT; #10;
-    A = 4'b0011; B = 4'b0000; operation = SHL; #10;
-    A = 4'b1000; B = 4'b0000; operation = SHR; #10;
-
-    $stop;
-
-end
+        $stop; // End of simulation
+    end
 
 endmodule
 ```
