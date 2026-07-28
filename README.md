@@ -191,6 +191,6 @@ endmodule
 
 ### Result
 
-The design and simulation of a 4-bit ALU using Enumerated Data Types and Case Statements in SystemVerilog HDL was successfully carried out in Synopsys VCS and DVE
+The design and simulation of a 4-bit ALU using Enumerated Data Types and Case Statements in SystemVerilog HDL was successfully carried out in Synopsys VCS and DVE. 
 The ALU performed arithmetic, logical, and shift operations correctly as verified from the simulation outputs.
 
